@@ -1,0 +1,57 @@
+apiVersion: kubetrack.io/v1
+kind: KubeTrackConfiguration
+rules:
+  - apiVersion: "v1"
+    kind: Pod
+    namespaces: ["default"]
+    recordEvents: true
+    careFields:
+      - name: deletionTimestamp
+        type: jsonpath
+        expr: .metadata.deletionTimestamp
+      - name: phase
+        type: jsonpath
+        expr: .status.phase
+      - name: status
+        type: builtin
+        expr: PodStatusWithRestartCount
+      - name: nodeName
+        type: jsonpath
+        expr: .spec.nodeName
+    onCreate:
+      saveFullObject: true
+    onUpdate:
+      saveFullObject: false
+      saveCmp: true
+      saveJsonPatch: true
+    onDelete:
+      saveFullObject: true
+  - apiVersion: "v1"
+    kind: Node
+    recordEvents: true
+    careFields:
+      - name: status
+        type: builtin
+        expr: NodeStatus
+      - name: role
+        type: builtin
+        expr: FindNodeRoles
+      - name: addresses
+        type: jsonpath
+        expr: .status.addresses
+      - name: podCIDR
+        type: jsonpath
+        expr: .spec.podCIDR
+      - name: taints
+        type: jsonpath
+        expr: .spec.taints
+    onCreate:
+      saveFullObject: true
+    onUpdate:
+      saveFullObject: false
+      saveCmp: true
+      saveJsonPatch: true
+    onDelete:
+      saveFullObject: true
+output:
+  - log: {}
