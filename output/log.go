@@ -36,7 +36,7 @@ func (lo *LogOutput) Write(out OutputStruct) error {
 
 	log.L.Info(out.Message, keysAndValues...)
 
-	if out.Diff != "" {
+	if lo.conf.PrintDiff && out.Diff != "" {
 		fmt.Println(out.Diff)
 	}
 	return nil

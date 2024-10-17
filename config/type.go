@@ -72,7 +72,9 @@ type Output struct {
 	Postgres *OutputPostgres
 }
 
-type OutputLog struct{}
+type OutputLog struct {
+	PrintDiff bool `json:"printDiff"`
+}
 
 type OutputMysql struct {
 	DSN string `json:"dsn"`

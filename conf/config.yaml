@@ -54,4 +54,5 @@ rules:
     onDelete:
       saveFullObject: true
 output:
-  - log: {}
+  - log:
+      printDiff: true
