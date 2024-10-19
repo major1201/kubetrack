@@ -112,6 +112,28 @@ output:
       ttlDays: 1
 ```
 
+## Useful SQLs
+
+Show latest 10 records
+
+```sql
+SELECT id, event_time, source, event_type,
+  concat(api_version, '/', kind, ',', namespace, '/', name) object_ref,
+  uid, message, fields
+FROM events
+ORDER BY id DESC
+LIMIT 10\G
+```
+
+Show most produced events group by kind, namespace and source
+
+```sql
+SELECT api_version, kind, namespace, source, count(*) cnt
+FROM events
+GROUP BY api_version, kind, namespace, source
+ORDER BY cnt DESC
+```
+
 ## License
 
 MIT
