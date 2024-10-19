@@ -6,6 +6,7 @@ import (
 	"github.com/major1201/kubetrack/config"
 	"github.com/major1201/kubetrack/gormutils"
 	"github.com/major1201/kubetrack/log"
+	"github.com/robfig/cron/v3"
 )
 
 type MysqlOutput struct {
@@ -21,6 +22,7 @@ func NewMysqlOutput(conf *config.OutputMysql) *MysqlOutput {
 	}
 	res.initDB()
 	res.migrate()
+	res.initCleanupJob()
 
 	return res
 }
@@ -72,5 +74,25 @@ func (lo *MysqlOutput) migrate() {
 	if err := gormutils.GetDB().AutoMigrate(&Events{}); err != nil {
 		log.L.Error(err, "migrate error")
 		os.Exit(1)
+	}
+}
+
+func (lo *MysqlOutput) initCleanupJob() {
+	if lo.conf.TTLDays <= 0 {
+		return
+	}
+
+	cj := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger), cron.Recover(cron.DefaultLogger)))
+	if _, err := cj.AddFunc("* * * * *", lo.doCleanupJob); err != nil {
+		panic(err)
+	}
+	cj.Start()
+	log.L.Info("mysql cleanup job started, will run every hour", "ttl", lo.conf.TTLDays)
+}
+
+func (lo *MysqlOutput) doCleanupJob() {
+	log.L.Info("running cleanup job", "ttlDays", lo.conf.TTLDays)
+	if err := gormutils.Delete(&Events{}, "created_at < now() - interval ? day", lo.conf.TTLDays); err != nil {
+		log.L.Error(err, "cron: delete data failed")
 	}
 }

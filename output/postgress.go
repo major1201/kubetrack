@@ -1,11 +1,13 @@
 package output
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/major1201/kubetrack/config"
 	"github.com/major1201/kubetrack/gormutils"
 	"github.com/major1201/kubetrack/log"
+	"github.com/robfig/cron/v3"
 )
 
 type PostgresOutput struct {
@@ -16,13 +18,14 @@ func NewPostgresOutput(conf *config.OutputPostgres) *PostgresOutput {
 	if conf == nil {
 		return nil
 	}
-	res := &PostgresOutput{
+	out := &PostgresOutput{
 		conf: conf,
 	}
-	res.initDB()
-	res.migrate()
+	out.initDB()
+	out.migrate()
+	out.initCleanupJob()
 
-	return res
+	return out
 }
 
 func (lo *PostgresOutput) Name() string {
@@ -72,5 +75,25 @@ func (lo *PostgresOutput) migrate() {
 	if err := gormutils.GetDB().AutoMigrate(&Events{}); err != nil {
 		log.L.Error(err, "migrate error")
 		os.Exit(1)
+	}
+}
+
+func (lo *PostgresOutput) initCleanupJob() {
+	if lo.conf.TTLDays <= 0 {
+		return
+	}
+
+	cj := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger), cron.Recover(cron.DefaultLogger)))
+	if _, err := cj.AddFunc("* * * * *", lo.doCleanupJob); err != nil {
+		panic(err)
+	}
+	cj.Start()
+	log.L.Info("postgres cleanup job started, will run every hour", "ttl", lo.conf.TTLDays)
+}
+
+func (lo *PostgresOutput) doCleanupJob() {
+	log.L.Info("running cleanup job", "ttlDays", lo.conf.TTLDays)
+	if err := gormutils.Delete(&Events{}, fmt.Sprintf("created_at < now() - INTERVAL '%d days'", lo.conf.TTLDays)); err != nil {
+		log.L.Error(err, "cron: delete data failed")
 	}
 }

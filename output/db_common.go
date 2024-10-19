@@ -8,7 +8,7 @@ import (
 )
 
 type Events struct {
-	gormutils.Model
+	gormutils.ModelUnscoped
 
 	EventTime time.Time `json:"event_time"`
 	Source    string    `json:"source"`
