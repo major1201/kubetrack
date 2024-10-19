@@ -2,8 +2,23 @@ apiVersion: kubetrack.io/v1
 kind: KubeTrackConfiguration
 rules:
   - apiVersion: "v1"
+    # the resource kind you need to watch
     kind: Pod
+
+    # namespaces you need to watch
     namespaces: ["default"]
+
+    # excluded namespaces, wildcard is supported here
+    excludedNamespaces: ["dontcare", "kube*"]
+
+    # fields you really care about, these fields will be stored seperate
+    #   supported types are jsonpath, go-template, builtin
+    #   - for jsonpath, the syntax you may refer to https://kubernetes.io/docs/reference/kubectl/jsonpath/
+    #   - builtin functions are listed here:
+    #       - PodStatus
+    #       - PodStatusWithRestartCount
+    #       - NodeStatus
+    #       - FindNodeRoles
     careFields:
       - name: deletionTimestamp
         type: jsonpath
@@ -17,6 +32,8 @@ rules:
       - name: nodeName
         type: jsonpath
         expr: .spec.nodeName
+
+    # whether you need to save the full object, save the comparasion(diff) or jsonpatch on create/update/delete
     onCreate:
       saveFullObject: true
     onUpdate:
@@ -51,9 +68,19 @@ rules:
       saveJsonPatch: true
     onDelete:
       saveFullObject: true
+
+# what namespaces to watch
 events:
   namespaces: [] # watch all namespaces
   excludedNamespaces: []
+
+# save the output to one or multiple the databases
 output:
   - log:
       printDiff: true
+  - postgres:
+      dsn: host=127.0.0.1 user=postgres password=password dbname=kubetrack port=5432 sslmode=disable connect_timeout=5
+      ttlDays: 1
+  - mysql:
+      dsn: "root:password@tcp(127.0.0.1:3306)/kubetrack?charset=utf8mb4&parseTime=True&loc=Local"
+      ttlDays: 1

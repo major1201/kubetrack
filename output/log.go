@@ -43,5 +43,8 @@ func (lo *LogOutput) Write(out OutputStruct) error {
 }
 
 func (lo *LogOutput) objectRefString(objectRef corev1.ObjectReference) string {
+	if len(objectRef.Namespace) == 0 {
+		return fmt.Sprintf("%s/%s,%s", objectRef.APIVersion, objectRef.Kind, objectRef.Name)
+	}
 	return fmt.Sprintf("%s/%s,%s/%s", objectRef.APIVersion, objectRef.Kind, objectRef.Namespace, objectRef.Name)
 }
