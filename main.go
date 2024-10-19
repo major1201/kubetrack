@@ -10,7 +10,6 @@ import (
 	kubecache "github.com/major1201/kubetrack/kube/cache"
 	"github.com/major1201/kubetrack/log"
 	"github.com/major1201/kubetrack/output"
-	"github.com/major1201/kubetrack/utils/setx"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -64,8 +63,6 @@ func runMain(c *cli.Context) error {
 	generalHandler := handler.NewGeneralHandler(ktconfig, out)
 	eventHandler := handler.NewEventHandler(ktconfig, out)
 
-	eventNamespaces := setx.NewHashSetWithCap[string](0)
-
 	// make units
 	var units []kubecache.ResourceUnitWithHandlers
 	for _, rule := range ktconfig.Rules {
@@ -79,24 +76,30 @@ func runMain(c *cli.Context) error {
 			return err
 		}
 
-		for _, namespace := range rule.Namespaces {
-			log.L.Info("loading resources", "namespace", namespace, "resource", mp.Resource.String())
+		if len(rule.Namespaces) == 0 {
+			log.L.Info("loading resources", "resource", mp.Resource.String())
 			units = append(units, kubecache.ResourceUnitWithHandlers{
 				ResourceUnit: kubecache.ResourceUnit{
-					Namespace: namespace,
-					Resource:  mp.Resource,
+					Resource: mp.Resource,
 				},
 				ResourceEventHandlers: []kubecache.ClusterResourceEventHandler{generalHandler},
 			})
-
-			if rule.RecordEvents {
-				eventNamespaces.Add(namespace)
+		} else {
+			for _, namespace := range rule.Namespaces {
+				log.L.Info("loading resources", "namespace", namespace, "resource", mp.Resource.String())
+				units = append(units, kubecache.ResourceUnitWithHandlers{
+					ResourceUnit: kubecache.ResourceUnit{
+						Namespace: namespace,
+						Resource:  mp.Resource,
+					},
+					ResourceEventHandlers: []kubecache.ClusterResourceEventHandler{generalHandler},
+				})
 			}
 		}
 	}
 
 	// watch events
-	if eventNamespaces.Contains("") {
+	if len(ktconfig.Events.Namespaces) == 0 {
 		// all namespaces
 		units = append(units, kubecache.ResourceUnitWithHandlers{
 			ResourceUnit: kubecache.ResourceUnit{
@@ -106,7 +109,7 @@ func runMain(c *cli.Context) error {
 		})
 	} else {
 		// for each namespace
-		for _, namespace := range eventNamespaces.ToSlice() {
+		for _, namespace := range ktconfig.Events.Namespaces {
 			units = append(units, kubecache.ResourceUnitWithHandlers{
 				ResourceUnit: kubecache.ResourceUnit{
 					Namespace: namespace,

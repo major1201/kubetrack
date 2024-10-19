@@ -14,14 +14,14 @@ type KubeTrackConfiguration struct {
 	// +optional
 	Rules []Rule `json:"rules,omitempty" protobuf:"bytes,2,opt,name=rules"`
 
+	Events EventRule `json:"events,omitempty"`
+
 	// +optional
 	Output []Output `json:"output"`
 }
 
 type Rule struct {
 	ObjectSelector
-
-	RecordEvents bool `json:"recordEvents,omitempty"`
 
 	// the fields you cares about
 	CareFields []Field `json:"careFields,omitempty"`
@@ -37,6 +37,8 @@ type ObjectSelector struct {
 	metav1.TypeMeta
 
 	Namespaces []string `json:"namespaces,omitempty"`
+
+	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty"`
 
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 }
@@ -66,6 +68,12 @@ type Field struct {
 	Expr string    `json:"expr,omitempty"`
 }
 
+type EventRule struct {
+	Namespaces []string `json:"namespaces,omitempty"`
+
+	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty"`
+}
+
 type Output struct {
 	Log      *OutputLog
 	Mysql    *OutputMysql
@@ -77,9 +85,11 @@ type OutputLog struct {
 }
 
 type OutputMysql struct {
-	DSN string `json:"dsn"`
+	DSN     string `json:"dsn"`
+	TTLDays int    `json:"ttlDays"`
 }
 
 type OutputPostgres struct {
-	DSN string `json:"dsn"`
+	DSN     string `json:"dsn"`
+	TTLDays int    `json:"ttlDays"`
 }

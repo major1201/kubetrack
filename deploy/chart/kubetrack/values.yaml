@@ -43,7 +43,6 @@ kubetrack:
       - apiVersion: "v1"
         kind: Pod
         namespaces: ["default"]
-        recordEvents: true
         careFields:
           - name: deletionTimestamp
             type: jsonpath
@@ -67,7 +66,6 @@ kubetrack:
           saveFullObject: true
       - apiVersion: "v1"
         kind: Node
-        recordEvents: true
         careFields:
           - name: status
             type: builtin
@@ -92,6 +90,9 @@ kubetrack:
           saveJsonPatch: true
         onDelete:
           saveFullObject: true
+    events:
+      namespaces: [] # watch all namespaces
+      excludedNamespaces: []
     output:
       - log: {}
 

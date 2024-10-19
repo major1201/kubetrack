@@ -32,8 +32,11 @@ func NewEventHandler(conf config.KubeTrackConfiguration, outputers []output.Outp
 }
 
 func (h *EventHandler) OnAdd(cluster kubecache.Cluster, obj any) {
-	eventTime := time.Now()
 	unstrObj := obj.(*unstructured.Unstructured)
+	if !h.config.Events.Match(unstrObj) {
+		return
+	}
+	eventTime := time.Now()
 	eventIf, _ := kube.GetScheme().ConvertToVersion(obj.(runtime.Object), runtime.GroupVersioner(schema.GroupVersions(kube.GetScheme().PrioritizedVersionsAllGroups())))
 	event := eventIf.(*corev1.Event)
 
@@ -63,9 +66,12 @@ func (h *EventHandler) OnAdd(cluster kubecache.Cluster, obj any) {
 }
 
 func (h *EventHandler) OnUpdate(cluster kubecache.Cluster, oldObj, newObj any) {
-	eventTime := time.Now()
 	oldUnstrObj := oldObj.(*unstructured.Unstructured)
 	newUnstrObj := newObj.(*unstructured.Unstructured)
+	if !h.config.Events.Match(newUnstrObj) {
+		return
+	}
+	eventTime := time.Now()
 	oldEventIf, _ := kube.GetScheme().ConvertToVersion(oldObj.(runtime.Object), runtime.GroupVersioner(schema.GroupVersions(kube.GetScheme().PrioritizedVersionsAllGroups())))
 	oldEvent := oldEventIf.(*corev1.Event)
 	newEventIf, _ := kube.GetScheme().ConvertToVersion(newObj.(runtime.Object), runtime.GroupVersioner(schema.GroupVersions(kube.GetScheme().PrioritizedVersionsAllGroups())))

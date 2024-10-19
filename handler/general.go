@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	jsonpatch "github.com/evanphx/json-patch"
@@ -56,7 +55,6 @@ func (h *GeneralHandler) OnAdd(cluster kubecache.Cluster, obj any) {
 		EventType: output.EventTypeAdd,
 		Source:    output.SourceTypeGeneral,
 		Fields:    BuildFieldsMap(unstrObj, rule.CareFields),
-		Message:   fmt.Sprintf("%s added", DisplayObjectReference(objRef)),
 	}
 
 	if eventAction.SaveFullObject {
@@ -92,7 +90,6 @@ func (h *GeneralHandler) OnUpdate(cluster kubecache.Cluster, oldObj, newObj any)
 		EventType: output.EventTypeUpdate,
 		Source:    output.SourceTypeGeneral,
 		Fields:    BuildFieldsMap(newUnstrObj, rule.CareFields),
-		Message:   fmt.Sprintf("%s updated", DisplayObjectReference(objRef)),
 	}
 	if eventAction.SaveFullObject {
 		content.Object = newUnstrObj.Object
@@ -158,7 +155,7 @@ func (h *GeneralHandler) onDeleteUnstr(_ kubecache.Cluster, unstrObj *unstructur
 		EventType: output.EventTypeDelete,
 		Source:    output.SourceTypeGeneral,
 		Fields:    BuildFieldsMap(unstrObj, rule.CareFields),
-		Message:   fmt.Sprintf("%s deleted%s", DisplayObjectReference(objRef), Ternary(isTombstone, " [tombstone]", "")),
+		Message:   Ternary(isTombstone, " [tombstone]", ""),
 	}
 
 	if eventAction.SaveFullObject {

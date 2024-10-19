@@ -4,10 +4,12 @@ import (
 	"os"
 
 	"github.com/major1201/kubetrack/log"
+	"github.com/major1201/kubetrack/utils/goutils"
 	"github.com/major1201/kubetrack/utils/slicex"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/yaml"
@@ -32,8 +34,16 @@ func (osel ObjectSelector) Match(obj runtime.Object) bool {
 	}
 
 	// check namespaces
+	namespace := oobj.GetNamespace()
 	if len(osel.Namespaces) > 0 {
-		if !slicex.Contains(osel.Namespaces, oobj.GetNamespace()) {
+		if !slicex.Contains(osel.Namespaces, namespace) {
+			return false
+		}
+	}
+
+	// check excluded namespaces
+	for _, nsWildcard := range osel.ExcludedNamespaces {
+		if goutils.WildcardMatchSimple(nsWildcard, namespace) {
 			return false
 		}
 	}
@@ -51,6 +61,26 @@ func (osel ObjectSelector) Match(obj runtime.Object) bool {
 		return true
 	}
 	return selector.Matches(labels.Set(oobj.GetLabels()))
+}
+
+func (er EventRule) Match(unstr *unstructured.Unstructured) bool {
+	if unstr == nil {
+		return false
+	}
+
+	// check namespaces
+	namespace := unstr.GetNamespace()
+	if !slicex.Contains(er.Namespaces, namespace) {
+		return false
+	}
+
+	// check excluded namespaces
+	for _, nsWildcard := range er.ExcludedNamespaces {
+		if goutils.WildcardMatchSimple(nsWildcard, namespace) {
+			return false
+		}
+	}
+	return true
 }
 
 // todo reloader
