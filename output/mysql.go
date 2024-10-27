@@ -83,7 +83,7 @@ func (lo *MysqlOutput) initCleanupJob() {
 	}
 
 	cj := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger), cron.Recover(cron.DefaultLogger)))
-	if _, err := cj.AddFunc("* * * * *", lo.doCleanupJob); err != nil {
+	if _, err := cj.AddFunc("0 * * * *", lo.doCleanupJob); err != nil {
 		panic(err)
 	}
 	cj.Start()
