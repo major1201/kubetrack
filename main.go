@@ -101,6 +101,7 @@ func runMain(c *cli.Context) error {
 	// watch events
 	if len(ktconfig.Events.Namespaces) == 0 {
 		// all namespaces
+		log.L.Info("loading events")
 		units = append(units, kubecache.ResourceUnitWithHandlers{
 			ResourceUnit: kubecache.ResourceUnit{
 				Resource: eventGVR,
@@ -110,6 +111,7 @@ func runMain(c *cli.Context) error {
 	} else {
 		// for each namespace
 		for _, namespace := range ktconfig.Events.Namespaces {
+			log.L.Info("loading events", "namespace", namespace)
 			units = append(units, kubecache.ResourceUnitWithHandlers{
 				ResourceUnit: kubecache.ResourceUnit{
 					Namespace: namespace,

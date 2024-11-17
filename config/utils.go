@@ -70,8 +70,10 @@ func (er EventRule) Match(unstr *unstructured.Unstructured) bool {
 
 	// check namespaces
 	namespace := unstr.GetNamespace()
-	if !slicex.Contains(er.Namespaces, namespace) {
-		return false
+	if len(er.Namespaces) > 0 {
+		if !slicex.Contains(er.Namespaces, namespace) {
+			return false
+		}
 	}
 
 	// check excluded namespaces
