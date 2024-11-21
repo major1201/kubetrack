@@ -12,6 +12,9 @@ type KubeTrackConfiguration struct {
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// +optional
+	Cluster string `json:"cluster,omitempty"`
+
+	// +optional
 	Rules []Rule `json:"rules,omitempty" protobuf:"bytes,2,opt,name=rules"`
 
 	Events EventRule `json:"events,omitempty"`

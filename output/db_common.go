@@ -10,9 +10,10 @@ import (
 type Events struct {
 	gormutils.ModelUnscoped
 
-	EventTime time.Time `json:"event_time"`
-	Source    string    `json:"source"`
-	EventType string    `json:"event_type"`
+	Cluster   string    `json:"cluster" gorm:"type:varchar(64);index"`
+	EventTime time.Time `json:"event_time" gorm:"index"`
+	Source    string    `json:"source" gorm:"type:varchar(64);index"`
+	EventType string    `json:"event_type" gorm:"type:varchar(64);index"`
 
 	APIVersion string `json:"api_version" gorm:"type:varchar(64);index"`
 	Kind       string `json:"kind" gorm:"type:varchar(64);index"`

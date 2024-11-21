@@ -10,15 +10,17 @@ import (
 )
 
 type MysqlOutput struct {
-	conf *config.OutputMysql
+	ktconfig *config.KubeTrackConfiguration
+	conf     *config.OutputMysql
 }
 
-func NewMysqlOutput(conf *config.OutputMysql) *MysqlOutput {
+func NewMysqlOutput(ktconfig *config.KubeTrackConfiguration, conf *config.OutputMysql) *MysqlOutput {
 	if conf == nil {
 		return nil
 	}
 	res := &MysqlOutput{
-		conf: conf,
+		ktconfig: ktconfig,
+		conf:     conf,
 	}
 	res.initDB()
 	res.migrate()
@@ -33,6 +35,7 @@ func (lo *MysqlOutput) Name() string {
 
 func (lo *MysqlOutput) Write(out OutputStruct) error {
 	ev := &Events{
+		Cluster:   lo.ktconfig.Cluster,
 		EventTime: out.EventTime,
 		Source:    string(out.Source),
 		EventType: string(out.EventType),

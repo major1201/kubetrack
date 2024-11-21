@@ -11,15 +11,17 @@ import (
 )
 
 type PostgresOutput struct {
-	conf *config.OutputPostgres
+	ktconfig *config.KubeTrackConfiguration
+	conf     *config.OutputPostgres
 }
 
-func NewPostgresOutput(conf *config.OutputPostgres) *PostgresOutput {
+func NewPostgresOutput(ktconfig *config.KubeTrackConfiguration, conf *config.OutputPostgres) *PostgresOutput {
 	if conf == nil {
 		return nil
 	}
 	out := &PostgresOutput{
-		conf: conf,
+		ktconfig: ktconfig,
+		conf:     conf,
 	}
 	out.initDB()
 	out.migrate()
@@ -34,6 +36,7 @@ func (lo *PostgresOutput) Name() string {
 
 func (lo *PostgresOutput) Write(out OutputStruct) error {
 	ev := &Events{
+		Cluster:   lo.ktconfig.Cluster,
 		EventTime: out.EventTime,
 		Source:    string(out.Source),
 		EventType: string(out.EventType),

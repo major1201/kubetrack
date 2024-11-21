@@ -54,9 +54,9 @@ func runMain(c *cli.Context) error {
 		case outConfig.Log != nil:
 			out = append(out, output.NewLogOutput(outConfig.Log))
 		case outConfig.Mysql != nil:
-			out = append(out, output.NewMysqlOutput(outConfig.Mysql))
+			out = append(out, output.NewMysqlOutput(&ktconfig, outConfig.Mysql))
 		case outConfig.Postgres != nil:
-			out = append(out, output.NewPostgresOutput(outConfig.Postgres))
+			out = append(out, output.NewPostgresOutput(&ktconfig, outConfig.Postgres))
 		}
 	}
 
