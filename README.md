@@ -52,6 +52,9 @@ rules:
       - name: phase
         type: jsonpath
         expr: .status.phase
+      - name: podIP
+        type: jsonpath
+        expr: .status.podIP
       - name: status
         type: builtin
         expr: PodStatusWithRestartCount
